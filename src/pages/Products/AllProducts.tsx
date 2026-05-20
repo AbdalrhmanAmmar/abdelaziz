@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import {
   Package,
+  PackagePlus,
   Plus,
   Search,
   Edit2,
@@ -98,6 +99,11 @@ const Allproducts = () => {
   const [historyProduct, setHistoryProduct] = useState<IProduct | null>(null);
   const [historyData, setHistoryData] = useState<IProductOrderHistory[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
+  // Add quantity state
+  const [addQtyProduct, setAddQtyProduct] = useState<IProduct | null>(null);
+  const [addQtyInput, setAddQtyInput] = useState("");
+  const [isAddingQty, setIsAddingQty] = useState(false);
 
   const {
     data: productResponse,
@@ -210,6 +216,32 @@ const Allproducts = () => {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleAddQuantity = async () => {
+    if (!addQtyProduct) return;
+    const amount = parseInt(addQtyInput, 10);
+    if (!amount || amount <= 0) return;
+
+    try {
+      setIsAddingQty(true);
+      const newQty = addQtyProduct.quantity + amount;
+      const res = await productServices.update(addQtyProduct.id, { quantity: newQty } as IUpdateProduct);
+      if (res.success) {
+        setData((prev) =>
+          prev
+            ? { ...prev, data: prev.data.map((p) => (p.id === addQtyProduct.id ? { ...p, quantity: newQty } : p)) }
+            : prev
+        );
+        toast({ title: `Added ${amount} units to "${addQtyProduct.name}"` });
+        setAddQtyProduct(null);
+        setAddQtyInput("");
+      }
+    } catch (error: any) {
+      toast({ title: "Failed to update quantity", description: error.message ?? "Unexpected error", variant: "destructive" });
+    } finally {
+      setIsAddingQty(false);
     }
   };
 
@@ -333,6 +365,7 @@ const Allproducts = () => {
               onEdit={openEdit}
               onDelete={handleDeleteClick}
               onViewHistory={setHistoryProduct}
+              onAddQuantity={setAddQtyProduct}
             />
           ))}
         </div>
@@ -509,6 +542,74 @@ const Allproducts = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Add Quantity Dialog */}
+      <Dialog
+        open={!!addQtyProduct}
+        onOpenChange={() => { setAddQtyProduct(null); setAddQtyInput(""); }}
+      >
+        <DialogContent className="sm:max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PackagePlus className="w-5 h-5 text-primary" />
+              Add Stock
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="py-4 space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Product:{" "}
+              <span className="font-medium text-foreground">{addQtyProduct?.name}</span>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Current stock:{" "}
+              <span className="font-medium text-foreground">{addQtyProduct?.quantity} units</span>
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="add-qty">Quantity to Add</Label>
+              <Input
+                id="add-qty"
+                type="number"
+                min={1}
+                step="1"
+                placeholder="e.g. 50"
+                value={addQtyInput}
+                onChange={(e) => setAddQtyInput(e.target.value)}
+                autoFocus
+              />
+            </div>
+            {addQtyInput && parseInt(addQtyInput) > 0 && (
+              <p className="text-xs text-muted-foreground">
+                New stock:{" "}
+                <span className="font-semibold text-foreground">
+                  {(addQtyProduct?.quantity ?? 0) + parseInt(addQtyInput)} units
+                </span>
+              </p>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => { setAddQtyProduct(null); setAddQtyInput(""); }}
+              disabled={isAddingQty}
+            >
+              <X className="w-4 h-4 mr-1" /> Cancel
+            </Button>
+            <Button
+              onClick={handleAddQuantity}
+              disabled={isAddingQty || !addQtyInput || parseInt(addQtyInput) <= 0}
+              className="gradient-coral"
+            >
+              {isAddingQty ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Adding...</>
+              ) : (
+                <><Check className="w-4 h-4 mr-1" /> Add Stock</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <ConfirmDelete
         isOpen={isDeleteOpen}
         isLoading={isDeleting}
@@ -527,12 +628,14 @@ const ProductCard = ({
   onEdit,
   onDelete,
   onViewHistory,
+  onAddQuantity,
 }: {
   product: IProduct;
   index: number;
   onEdit: (p: IProduct) => void;
   onDelete: (id: string) => void;
   onViewHistory: (p: IProduct) => void;
+  onAddQuantity: (p: IProduct) => void;
 }) => {
   const gradient = COLORS[index % COLORS.length];
 
@@ -564,6 +667,9 @@ const ProductCard = ({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onViewHistory(product)}>
                 <History className="w-4 h-4 mr-2" /> Order History
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onAddQuantity(product)}>
+                <PackagePlus className="w-4 h-4 mr-2" /> Add Stock
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => onEdit(product)}>
@@ -626,6 +732,15 @@ const ProductCard = ({
             <History className="w-3.5 h-3.5" /> History
           </Button>
           <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 hover:text-emerald-600"
+              title="Add Stock"
+              onClick={() => onAddQuantity(product)}
+            >
+              <PackagePlus className="w-3.5 h-3.5" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"

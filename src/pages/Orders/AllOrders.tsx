@@ -16,6 +16,10 @@ import {
   MessageSquare,
   Filter,
   FileDown,
+  FileBarChart2,
+  CalendarDays,
+  CalendarRange,
+  Calendar,
 } from "lucide-react";
 
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -32,6 +36,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -45,6 +57,7 @@ import { Loading } from "@/components/shared/Loading";
 import { orderServices } from "@/api/order";
 import type { IOrder, IOrderItem, OrderStatus } from "@/shared";
 import { generateOrderPdf } from "@/lib/generateOrderPdf";
+import { generateReportPdf } from "@/lib/generateReportPdf";
 
 const STATUS_CONFIG: Record<
   OrderStatus,
@@ -61,6 +74,8 @@ const AllOrders = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   // Detail dialog state
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
@@ -140,6 +155,17 @@ const AllOrders = () => {
     rejected: orders.filter((o) => o.status === "rejected").length,
   };
 
+  const handleReport = async (period: "daily" | "weekly" | "monthly") => {
+    try {
+      setIsGeneratingReport(true);
+      await generateReportPdf(orders, period);
+    } catch {
+      toast({ title: "Failed to generate report", variant: "destructive" });
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
   if (isLoading)
     return (
       <DashboardLayout>
@@ -158,6 +184,40 @@ const AllOrders = () => {
           </h1>
           <p className="text-muted-foreground mt-1">Review and process branch orders</p>
         </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="gap-2 border-primary/30 text-primary hover:bg-primary/5"
+              disabled={isGeneratingReport}
+            >
+              {isGeneratingReport ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileBarChart2 className="w-4 h-4" />
+              )}
+              Reports
+              <ChevronDown className="w-3.5 h-3.5 ml-1 opacity-60" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuLabel className="text-xs text-muted-foreground">Generate PDF Report</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => handleReport("daily")} className="gap-2 cursor-pointer">
+              <Calendar className="w-4 h-4 text-amber-500" />
+              Daily Report
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleReport("weekly")} className="gap-2 cursor-pointer">
+              <CalendarDays className="w-4 h-4 text-blue-500" />
+              Weekly Report
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleReport("monthly")} className="gap-2 cursor-pointer">
+              <CalendarRange className="w-4 h-4 text-emerald-500" />
+              Monthly Report
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Stats */}

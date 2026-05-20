@@ -163,7 +163,7 @@ const AllBranches = () => {
   };
 
   const copyLink = (branchSlug: string) => {
-    const url = `${window.location.origin}/branch/${branchSlug}`;
+    const url = `${window.location.origin}/#/branch/${branchSlug}`;
     navigator.clipboard.writeText(url);
     toast({ title: "Login link copied to clipboard" });
   };
@@ -196,7 +196,10 @@ const AllBranches = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        <div className="bg-card rounded-xl p-5 border shadow-sm flex items-center gap-4 animate-fade-up opacity-0" style={{ animationDelay: "0s", animationFillMode: "forwards" }}>
+        <div
+          className="bg-card rounded-xl p-5 border shadow-sm flex items-center gap-4 animate-fade-up opacity-0"
+          style={{ animationDelay: "0s", animationFillMode: "forwards" }}
+        >
           <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10 text-primary">
             <Building2 className="w-6 h-6" />
           </div>
@@ -205,7 +208,10 @@ const AllBranches = () => {
             <p className="text-xs text-muted-foreground">Total Branches</p>
           </div>
         </div>
-        <div className="bg-card rounded-xl p-5 border shadow-sm flex items-center gap-4 animate-fade-up opacity-0" style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}>
+        <div
+          className="bg-card rounded-xl p-5 border shadow-sm flex items-center gap-4 animate-fade-up opacity-0"
+          style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}
+        >
           <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-success/10 text-success">
             <Link className="w-6 h-6" />
           </div>
@@ -430,7 +436,7 @@ const BranchCard = ({
         <div className="flex items-center gap-2 p-2.5 bg-muted/40 rounded-lg border">
           <Link className="w-3.5 h-3.5 text-primary flex-shrink-0" />
           <span className="text-xs font-mono text-muted-foreground truncate flex-1">
-            /branch/{branch.slug}
+            /#/branch/{branch.slug}
           </span>
           <button
             type="button"
