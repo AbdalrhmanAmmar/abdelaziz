@@ -1,16 +1,24 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Package, User, Warehouse, Tag, Building2, ClipboardList } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Package,
+  User,
+  Warehouse,
+  Tag,
+  Building2,
+  ClipboardList,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard",   path: "/" },
-  { icon: Users,           label: "Users",        path: "/employees" },
-  { icon: Building2,       label: "Branches",     path: "/branches" },
-  { icon: ClipboardList,   label: "Orders",       path: "/orders" },
-  { icon: Warehouse,       label: "Warehouses",   path: "/warehouses" },
-  { icon: Tag,             label: "Categories",   path: "/categories" },
-  { icon: Package,         label: "Products",     path: "/Allproducts" },
-  { icon: User,            label: "Profile",      path: "/profile" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: Building2, label: "Branches", path: "/branches" },
+  { icon: ClipboardList, label: "Orders", path: "/orders" },
+  { icon: Warehouse, label: "Warehouses", path: "/warehouses" },
+  { icon: Tag, label: "Categories", path: "/categories" },
+  { icon: Package, label: "Products", path: "/Allproducts" },
+  { icon: User, label: "Profile", path: "/profile" },
 ];
 
 interface SidebarProps {
